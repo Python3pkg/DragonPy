@@ -18,7 +18,7 @@ BASE_PATH=os.path.abspath(os.path.join(os.path.dirname(__file__)))
 PREFIX_SCRIPT=os.path.abspath(os.path.join(BASE_PATH, "source_prefix_code.py"))
 
 REQ_BASE_PATH=os.path.abspath(os.path.join(BASE_PATH, "..", "requirements"))
-print("requirement files path: %r" % REQ_BASE_PATH)
+print(("requirement files path: %r" % REQ_BASE_PATH))
 
 
 if __name__ == '__main__':

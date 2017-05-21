@@ -17,9 +17,9 @@ import math
 
 try:
     import audioop
-except ImportError, err:
+except ImportError as err:
     # e.g. PyPy, see: http://bugs.pypy.org/msg4430
-    print "Can't use audioop:", err
+    print("Can't use audioop:", err)
     audioop = None
 
 
@@ -59,7 +59,7 @@ class WaveBase(object):
         except KeyError:
             raise NotImplementedError(
                 "Only %s wave files are supported, yet!" % (
-                    ", ".join(["%sBit" % (i * 8) for i in WAV_ARRAY_TYPECODE.keys()])
+                    ", ".join(["%sBit" % (i * 8) for i in list(WAV_ARRAY_TYPECODE.keys())])
                 )
             )
         return typecode
@@ -101,10 +101,10 @@ class Wave2Bitstream(WaveBase):
         assert cfg.END_COUNT > 0 # Sample count that must be pos/neg at once
         assert cfg.MID_COUNT > 0 # Sample count that can be around null
 
-        print "open wave file '%s'..." % wave_filename
+        print("open wave file '%s'..." % wave_filename)
         try:
             self.wavefile = wave.open(wave_filename, "rb")
-        except IOError, err:
+        except IOError as err:
             msg = "Error opening %s: %s" % (repr(wave_filename), err)
             log.error(msg)
             sys.stderr.write(msg)
@@ -113,10 +113,10 @@ class Wave2Bitstream(WaveBase):
         self.set_wave_properties()
 
         self.frame_count = self.wavefile.getnframes()
-        print "Number of audio frames:", self.frame_count
+        print("Number of audio frames:", self.frame_count)
 
         self.min_volume = int(round(self.max_value * cfg.MIN_VOLUME_RATIO / 100))
-        print "Ignore sample lower than %.1f%% = %i" % (cfg.MIN_VOLUME_RATIO, self.min_volume)
+        print("Ignore sample lower than %.1f%% = %i" % (cfg.MIN_VOLUME_RATIO, self.min_volume))
 
         self.half_sinus = False # in trigger yield the full cycle
         self.frame_no = None
@@ -188,20 +188,20 @@ class Wave2Bitstream(WaveBase):
         width = 50
         max_count = max(statistics.values())
 
-        print
-        print "Found this zeror crossing timings in the wave file:"
-        print
+        print()
+        print("Found this zeror crossing timings in the wave file:")
+        print()
 
-        for duration, count in sorted(statistics.items(), reverse=True):
+        for duration, count in sorted(list(statistics.items()), reverse=True):
             hz = duration2hz(duration, self.framerate / 2)
             w = int(round(float(width) / max_count * count))
             stars = "*"*w
-            print "%5sHz (%5s Samples) exist: %4s %s" % (hz, duration, count, stars)
+            print("%5sHz (%5s Samples) exist: %4s %s" % (hz, duration, count, stars))
 
-        print
-        print "Notes:"
-        print " - Hz values are converted to full sinus cycle duration."
-        print " - Sample cound is from half sinus cycle."
+        print()
+        print("Notes:")
+        print(" - Hz values are converted to full sinus cycle duration.")
+        print(" - Sample cound is from half sinus cycle.")
 
     def sync(self, length):
         """
@@ -210,9 +210,9 @@ class Wave2Bitstream(WaveBase):
 
         # go in wave stream to the first bit
         try:
-            self.next()
+            next(self)
         except StopIteration:
-            print "Error: no bits identified!"
+            print("Error: no bits identified!")
             sys.exit(-1)
 
         log.info("First bit is at: %s" % self.pformat_pos())
@@ -233,7 +233,7 @@ class Wave2Bitstream(WaveBase):
 
         if diff1 > diff2:
             log.info("\nbit-sync one step.")
-            self.iter_trigger_generator.next()
+            next(self.iter_trigger_generator)
             log.debug("Synced.")
         else:
             log.info("\nNo bit-sync needed.")
@@ -244,8 +244,8 @@ class Wave2Bitstream(WaveBase):
     def __iter__(self):
         return self
 
-    def next(self):
-        return self.iter_bitstream_generator.next()
+    def __next__(self):
+        return next(self.iter_bitstream_generator)
 
     def iter_bitstream(self, iter_duration_generator):
         """
@@ -278,11 +278,11 @@ class Wave2Bitstream(WaveBase):
 
         # for end statistics
         bit_one_count = 0
-        one_hz_min = sys.maxint
+        one_hz_min = sys.maxsize
         one_hz_avg = None
         one_hz_max = 0
         bit_nul_count = 0
-        nul_hz_min = sys.maxint
+        nul_hz_min = sys.maxsize
         nul_hz_avg = None
         nul_hz_max = 0
 
@@ -328,8 +328,8 @@ class Wave2Bitstream(WaveBase):
         bit_count = bit_one_count + bit_nul_count
 
         if bit_count == 0:
-            print "ERROR: No information from wave to generate the bits"
-            print "trigger volume to high?"
+            print("ERROR: No information from wave to generate the bits")
+            print("trigger volume to high?")
             sys.exit(-1)
 
         log.info("\n%i Bits: %i positive bits and %i negative bits" % (
@@ -348,7 +348,7 @@ class Wave2Bitstream(WaveBase):
         """
         yield the duration of two frames in a row.
         """
-        print
+        print()
         process_info = ProcessInfo(self.frame_count, use_last_rates=4)
         start_time = time.time()
         next_status = start_time + 0.25
@@ -365,7 +365,7 @@ class Wave2Bitstream(WaveBase):
                 self._print_status(process_info)
 
         self._print_status(process_info)
-        print
+        print()
 
     def iter_trigger(self, iter_wave_values):
         """
@@ -475,7 +475,7 @@ class Wave2Bitstream(WaveBase):
 
             try:
                 values = array.array(typecode, frames)
-            except ValueError, err:
+            except ValueError as err:
                 # e.g.:
                 #     ValueError: string length not a multiple of item size
                 # Work-a-round: Skip the last frames of this block
@@ -533,7 +533,7 @@ class Bitstream2Wave(WaveBase):
         log.info("create wave file '%s'..." % destination_filepath)
         try:
             self.wavefile = wave.open(destination_filepath, "wb")
-        except IOError, err:
+        except IOError as err:
             log.error("Error opening %s: %s" % (repr(destination_filepath), err))
             sys.exit(-1)
 
@@ -605,10 +605,10 @@ class Bitstream2Wave(WaveBase):
 
 if __name__ == "__main__":
     import doctest
-    print doctest.testmod(
+    print(doctest.testmod(
         verbose=False
         # verbose=True
-    )
+    ))
     # sys.exit()
 
     # test via CLI:

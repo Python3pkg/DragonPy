@@ -39,7 +39,7 @@
     PA6 | ENT   CLR   BRK   N/C   N/C   N/C   N/C  SHFT
 """
 
-from __future__ import absolute_import, division, print_function
+
 import six
 xrange = six.moves.xrange
 
@@ -277,7 +277,7 @@ def test(inkey, matrix_name, auto_shift=False):
 
     print("char/keycode: %s -> cols/rows: %s" % (repr(inkey), repr(col_row_values)))
 
-    for i in xrange(8):
+    for i in range(8):
         pia0b = invert_byte(2 ** i) # written into $ff02
         if matrix_name == "dragon":
             result = get_dragon_keymatrix_pia_result(inkey, pia0b) # read from $ff00
